@@ -27,3 +27,6 @@
 *.exe
 *.out
 *.app
+
+#Ignore the bin directory to which compiled files are written
+bin/

@@ -1,0 +1,3 @@
+[submodule "extern/tclap"]
+	path = extern/tclap
+	url = https://github.com/eile/tclap.git
