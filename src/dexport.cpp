@@ -2,11 +2,12 @@
 #include <memory>
 #include <thread>
 #include <future>
+#include <stdexcept>
 
 #include "evidence.h"
 #include "work_queue.h"
 #include "file.h"
-#include "file_processor.h"
+#include "file_extractor.h"
 #include "context.h"
 
 using namespace std;
@@ -18,19 +19,27 @@ TSK_WALK_RET_ENUM dirwalk_callback(TSK_FS_FILE *fsFile, const char *path, void *
 	}
 
 	if(fsFile->meta->type == TSK_FS_META_TYPE_VIRT) {
-		cout << "Skipping TSK Virtual file" << endl;
 		return TSK_WALK_CONT;
 	}
 
 	if(fsFile->meta->type == TSK_FS_META_TYPE_DIR) {
-		cout << "Skipping Directory" << endl;
 		return TSK_WALK_CONT;
 	}
 
-	((Context *) context)->workq().async(FileProcessor(make_shared<TSKFile>(fsFile->fs_info, path, fsFile->name->name, fsFile->meta->addr)));
+	((Context *) context)->workq().parallel(false);
+
+	try {
+		((Context *) context)->workq().async(FileExtractor(make_shared<TSKFile>(fsFile->fs_info, path, fsFile->name->name, fsFile->meta->addr), *((Context *)context)));
+	} catch(const runtime_error& re) {
+		cout << "Caught exception while attempting to add a file to the workq" << endl;
+		cout << re.what() << endl;
+	} catch(...) {
+		cout << "Caught exception while attempting to add a file to the workq" << endl;
+	}
 
 	return TSK_WALK_CONT;
 }
+
 
 int main(int argc, const char **argv) {
 	if(argc == 1) {
@@ -38,12 +47,11 @@ int main(int argc, const char **argv) {
 		return 1;
 	}
 
-	Context ctx;
-	//ctx.workq().parallel(false);
+	Context ctx(argv[2]);
+	ctx.workq().parallel(false);
 
 	Evidence e(argv[1]);
 	e.eachFs([&ctx](TSK_FS_INFO *fs) {
-		cout << "Received a FS with id: " << fs->fs_id << endl;
 		tsk_fs_dir_walk(
 			fs,
 			fs->root_inum,
@@ -54,4 +62,6 @@ int main(int argc, const char **argv) {
 	});
 
 	cout << "Finished walking the evidence" << endl;
+	ctx.workq().join();
+	cout << "All futures returned" << endl;
 }

@@ -1,8 +1,12 @@
+#ifndef __DEXPORT_FILE_MAGIC_H__
+#define __DEXPORT_FILE_MAGIC_H__
+
 #include <magic.h>
 #include <vector>
 #include <string>
 #include <regex>
 #include <iostream>
+#include <stdexcept>
 
 namespace dexport {
 	class FileMagicResult {
@@ -13,9 +17,14 @@ namespace dexport {
 
 		public:
 			FileMagicResult(std::string magicString):_magicString(magicString) {
-				std::cerr << "FileMagicResult: " << magicString << std::endl;
-				_fileMime = _magicString.substr(0, _magicString.find(";"));
-				std::cerr << "_fileMime: " << _fileMime << std::endl;
+				std::smatch matches;
+				std::regex e("(^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+)");
+				auto hits = std::regex_search(magicString, matches, e);
+				if(hits && matches.size() > 0) {
+					_fileMime = matches[1];
+				} else {
+					throw std::runtime_error("Unable to extract mime type from magic string: " + magicString);
+				}
 			}
 
 			const std::string& type() {
@@ -33,15 +42,11 @@ namespace dexport {
 
 	class FileMagic {
 		private:
-			static const int _DEFAULT_FLAGS = MAGIC_CONTINUE | MAGIC_MIME_TYPE | MAGIC_MIME_ENCODING;
+			static const int _DEFAULT_FLAGS = MAGIC_COMPRESS | MAGIC_MIME_TYPE | MAGIC_MIME_ENCODING;
 			magic_t _magic;
 
 			void setFlags(bool decompress) {
-				if(decompress) {
-					std::cerr << "Magic will decompress" << std::endl;
-				}
-
-				magic_setflags(_magic, _DEFAULT_FLAGS);/* | (decompress == false) ? 0:MAGIC_COMPRESS);*/
+				magic_setflags(_magic, _DEFAULT_FLAGS | ((decompress == false) ? 0:MAGIC_COMPRESS));
 			}
 
 		public:
@@ -51,15 +56,14 @@ namespace dexport {
 				magic_load(_magic, nullptr);
 			}
 
-			FileMagicResult test(const std::vector<char> &contents, bool decompress=false) {
-				setFlags(decompress);
-				std::cerr << "FileMagic checking " << contents.size() << " byte buffer" << std::endl;
+			FileMagicResult test(const std::vector<uint8_t> &contents) {
 				return FileMagicResult(magic_buffer(_magic, contents.data(), contents.size()));
 			}
 
-			FileMagicResult test(const std::string &filename, bool decompress=false) {
-				setFlags(decompress);
+			FileMagicResult test(const std::string &filename) {
 				return FileMagicResult(magic_file(_magic, filename.c_str()));
 			}
 	};
 }
+
+#endif

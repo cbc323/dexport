@@ -1,17 +1,40 @@
-all: bin dexport_objs
+TARGET= dex
+INC= -I./include
 
-bin:
-	mkdir bin
+CXX= clang++
+CXXFLAGS= -Wall -m64 -std=c++14 $(INC)
 
-dexport_objs:
-	$(MAKE) -C dexport all
+LIBS= -larchive -lz -lbz2 -lpthread -lmagic -ltsk
+LINKER= clang++
+LFLAGS= -Wall $(INC) $(LIBS)
 
-dexport_bin:
-	g++ -o bin/dexport -ltsk *.o
+DBG_OPT= -g
+REL_OPT= -03
 
-test:test.cpp
-	g++ -m64 -g -Wall -std=c++1y -ltsk -o test test.cpp
+EXEC = bin/dex
 
+SRCDIR = src
+INCDIR = include
+OBJDIR = obj
+BINDIR = bin
+
+SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+INCLUDES := $(wildcard $(INCDIR)/*.h)
+OBJECTS := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	@$(LINKER) -o $@ $(LFLAGS) $(OBJECTS)
+	@echo "Linking complete"
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+.PHONY: clean
 clean:
-	$(MAKE) -C dexport clean
-	rm -rf bin
+	rm -f $(OBJECTS)
+	@echo "Cleanup complete"
+
+.PHONY: remove
+remove: clean
+	rm -f $(BINDIR)/$(TARGET)
+	@echo "Executable removed"

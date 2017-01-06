@@ -44,9 +44,16 @@ void Evidence::eachFs(function<void (TSK_FS_INFO *)> callback) {
 	}
 
 	for(size_t i = 0; i < vs->part_count; ++i) {
-		auto fs = tsk_fs_open_vol(&vs->part_list[i], TSK_FS_TYPE_DETECT);
+		auto vspart = tsk_vs_part_get(vs, i);
+		if(vspart == nullptr) {
+			cout << "Unable to get information for partition: " << i << endl;
+			cout << tsk_error_get() << endl;
+		}
+
+		auto fs = tsk_fs_open_img(_imgInfo, vspart->start * vs->block_size, TSK_FS_TYPE_DETECT);
 		if(fs == nullptr) {
 			cout << "Cannot open partition with index: " << i << endl;
+			cout << tsk_error_get() << endl;
 			continue;
 		}
 

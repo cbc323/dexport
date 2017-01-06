@@ -1,24 +1,22 @@
 #ifndef __DEXPORT_TEMP_FILE_H__
 #define __DEXPORT_TEMP_FILE_H__
+
 #include <string>
 #include <fstream>
 #include <random>
-#include <memory>
 #include <iomanip>
 #include <sstream>
-#include <cstring>
-#include <unistd.h>
+#include <iostream>
 
 namespace dexport {
 	class TempFile {
 		private:
 			std::string _fileName;
-			//std::unique_ptr<std::ofstream> _stream;
 			std::fstream _fstream;
 
 
 		public:
-			TempFile(TempFile&& other) : _fileName(std::move(other._fileName)), _fstream(_fileName) {}
+			TempFile(TempFile&& other) : _fileName(std::move(other._fileName)), _fstream(std::move(other._fstream)) {}
 			TempFile(const std::string& fileName) : _fileName(fileName), _fstream(_fileName){}
 
 
@@ -42,6 +40,18 @@ namespace dexport {
 
 			const std::string& name() const {
 				return _fileName;
+			}
+
+			template <typename Function>
+			void write(Function f) {
+				std::ofstream ofs(_fileName);
+				f(ofs);
+			}
+
+			template <typename Function>
+			void read(Function f) {
+				std::ifstream ifs(_fileName);
+				f(ifs);
 			}
 	};
 }
