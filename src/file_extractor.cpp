@@ -11,6 +11,7 @@
 #include "temp_file.h"
 #include "extracted_file.h"
 #include "processors.h"
+#include "archive_identifier.h"
 
 using namespace std;
 using namespace dexport;
@@ -30,15 +31,7 @@ void FileExtractor::operator()() {
 	auto fmagic = ef->fileMagic();
 	cout << "FileMagic thinks this file is: " << fmagic.type() << endl;
 
-	auto mime = find_if(
-		_context.archiveMimes().begin(),
-		_context.archiveMimes().end(),
-		[&fmagic](const std::string& cur){
-			return (cur == fmagic.type());
-		}
-	);
-
-	if(mime == _context.archiveMimes().end()) {
+	if(ArchiveIdentifier::isArchiveMime(fmagic.type())) {
 		// this doesn't appear to be an archive it should be pushed through the processor
 		_context.workq().async(ExtractedArchiveProcessor(ef, _context));
 	} else {

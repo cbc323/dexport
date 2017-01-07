@@ -10,18 +10,6 @@ using namespace dexport;
 ExtractedObjectProcessor::ExtractedObjectProcessor(shared_ptr<ExtractedFile> extractedFile, Context& context)
 	: _extractedFile(extractedFile), _context(context) {}
 
-bool ExtractedObjectProcessor::isArchive() {
-	auto fmagic = _extractedFile->fileMagic();
-	auto mime = find_if(
-		_context.archiveMimes().begin(),
-		_context.archiveMimes().end(),
-		[&fmagic](const std::string& cur){
-			return (cur == fmagic.type());
-	});
-
-	return (mime != _context.archiveMimes().end());
-}
-
 ExtractedFileProcessor::ExtractedFileProcessor(shared_ptr<ExtractedFile> extractedFile, Context& context)
 	: ExtractedObjectProcessor(extractedFile, context) {}
 
@@ -47,7 +35,7 @@ void ExtractedArchiveProcessor::operator()() {
 	_extractedFile->setupReadArchive(a);
 
 	struct archive_entry *ae;
-	//size_t total_headers = 0;
+
 	while(archive_read_next_header(a, &ae) == ARCHIVE_OK) {
 		const char * entryPath = archive_entry_pathname(ae);
 		int64_t entry_size = archive_entry_size(ae);

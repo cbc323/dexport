@@ -9,9 +9,12 @@
 #include "file.h"
 #include "file_extractor.h"
 #include "context.h"
+#include "archive_identifier.h"
 
 using namespace std;
 using namespace dexport;
+
+std::vector<std::string> ArchiveIdentifier::_archiveMimes = std::vector<std::string>();
 
 TSK_WALK_RET_ENUM dirwalk_callback(TSK_FS_FILE *fsFile, const char *path, void *context) {
 	if(context == nullptr) {
@@ -49,6 +52,9 @@ int main(int argc, const char **argv) {
 
 	Context ctx(argv[2]);
 	ctx.workq().parallel(false);
+
+	// setup the mimes for the ArchiveIdentifier class
+	ArchiveIdentifier::setMimes(ctx.archiveMimes());
 
 	Evidence e(argv[1]);
 	e.eachFs([&ctx](TSK_FS_INFO *fs) {

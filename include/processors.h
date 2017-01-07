@@ -14,7 +14,6 @@ namespace dexport {
 
 		public:
 			ExtractedObjectProcessor(std::shared_ptr<ExtractedFile> extractedFile, Context& context);
-			bool isArchive();
 			virtual void operator()() = 0;
 	};
 
