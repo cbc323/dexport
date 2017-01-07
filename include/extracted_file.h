@@ -18,8 +18,13 @@ namespace dexport {
 
 		public:
 			ExtractedFile(FileMeta &&meta) : _meta(std::move(meta)) {}
+
 			virtual FileMagicResult fileMagic() = 0;
 			virtual void setupReadArchive(struct archive *arc) = 0;
+
+			const FileMeta& getMeta() const {
+				return _meta;
+			}
 	};
 
 	class MemoryExtractedFile : public ExtractedFile {

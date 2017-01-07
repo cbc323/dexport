@@ -11,6 +11,8 @@ namespace dexport {
 			std::string parentPath;
 			std::string fileName;
 
+			uint64_t archiveDepth = 0;
+
 			uint64_t inum;
 
 			uint64_t fileSize;
@@ -68,6 +70,12 @@ namespace dexport {
 
 					extDelete = tskMeta->time2.ext2.dtime;
 					extDeleteNano = tskMeta->time2.ext2.dtime_nano;
+			}
+
+			void makeChild(const std::string& childPath) {
+				archiveDepth++;
+				parentPath = parentPath + "/" + fileName;
+				fileName = childPath;
 			}
 	};
 }

@@ -26,7 +26,7 @@ TSK_WALK_RET_ENUM dirwalk_callback(TSK_FS_FILE *fsFile, const char *path, void *
 		return TSK_WALK_CONT;
 	}
 
-	((Context *) context)->workq().parallel(false);
+	//((Context *) context)->workq().parallel(false);
 
 	try {
 		((Context *) context)->workq().async(FileExtractor(make_shared<TSKFile>(fsFile->fs_info, path, fsFile->name->name, fsFile->meta->addr), *((Context *)context)));
