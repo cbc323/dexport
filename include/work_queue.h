@@ -50,8 +50,6 @@ namespace dexport {
 					return;
 				}
 
-				std::cout << "== Adding workd" << std::endl;
-
 				std::unique_lock<std::recursive_mutex> lck(_futuresMutex);
 				_inProgress.fetch_add(1);
 				_futures.push_back(std::async(std::launch::async, func));

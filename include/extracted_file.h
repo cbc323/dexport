@@ -1,6 +1,7 @@
 #ifndef __DEXPORT_EXTRACTED_FILE_H__
 #define __DEXPORT_EXTRACTED_FILE_H__
 
+#include <map>
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
@@ -10,6 +11,7 @@
 #include "file_meta.h"
 #include "file_magic.h"
 #include "temp_file.h"
+#include "digest.h"
 
 namespace dexport {
 	class ExtractedFile {
@@ -23,6 +25,7 @@ namespace dexport {
 			virtual FileMagicResult fileMagic() = 0;
 			virtual void setupReadArchive(struct archive *arc) = 0;
 			virtual std::vector<uint8_t> md5sum() = 0;
+			virtual std::map<std::string, std::vector<uint8_t>> digest() = 0;
 
 			const FileMeta& getMeta() const {
 				return _meta;
@@ -54,6 +57,11 @@ namespace dexport {
 				std::vector<uint8_t> output(16);
 				mbedtls_md5(_bytes.data(), _bytes.size(), output.data());
 				return output;
+			}
+
+			virtual std::map<std::string, std::vector<uint8_t>> digest() {
+				Digester d;
+				return d.digest(_bytes);
 			}
 	};
 
@@ -99,6 +107,21 @@ namespace dexport {
 				mbedtls_md5_free(&ctx);
 
 				return output;
+			}
+
+			virtual std::map<std::string, std::vector<uint8_t>> digest() {
+				std::vector<uint8_t> temp(1024 * 1024 * 200);
+				std::ifstream rd(_tf.name());
+
+				Digester d;
+				d.start();
+
+				while(rd.read((char *) temp.data(), temp.size())) {
+					std::streamsize s = rd.gcount();
+					d.update(temp.data(), s);
+				}
+
+				return d.finish();
 			}
 	};
 }

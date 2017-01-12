@@ -58,8 +58,6 @@ int main(int argc, const char **argv) {
 	Context ctx(argv[2]);
 	//ctx.workq().parallel(false);
 
-	cout << ">> Jobs running: " << ctx.workq().getInProgressCount().load() << endl;
-
 	// setup the mimes for the ArchiveIdentifier class
 	ArchiveIdentifier::setMimes(ctx.archiveMimes());
 
@@ -79,6 +77,7 @@ int main(int argc, const char **argv) {
 	{
 		std::unique_lock<std::mutex> ul(completeEvent);
 		while(true) {
+			// tick every 100ms, checking to see if the work queue is empty
 			bool done = cv.wait_until(ul, std::chrono::system_clock::now() + 100ms, [&ctx](){
 					ctx.workq().join();
 					//cout << "Jobs still running: " << ctx.workq().getInProgressCount().load() << endl;

@@ -22,7 +22,6 @@ FileExtractor::FileExtractor(shared_ptr<File> file, Context& context) : _file(fi
 
 FileExtractor::~FileExtractor() {
 	if(started) {
-		cout << ">> extractor decrementing jobs" << endl;
 		_context.workq().getInProgressCount().fetch_sub(1);
 	}
 }
@@ -40,7 +39,6 @@ void FileExtractor::operator()() {
 	}
 
 	auto fmagic = ef->fileMagic();
-	cout << "FileMagic thinks this file is: " << fmagic.type() << endl;
 
 	if(ArchiveIdentifier::isArchiveMime(fmagic.type())) {
 		// this doesn't appear to be an archive it should be pushed through the processor
