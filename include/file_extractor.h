@@ -12,9 +12,11 @@ namespace dexport {
 		private:
 			std::shared_ptr<File> _file;
 			Context& _context;
+			bool started;
 
 		public:
 			FileExtractor(std::shared_ptr<File> file, Context& context);
+			virtual ~FileExtractor();
 
 			void operator()();
 	};

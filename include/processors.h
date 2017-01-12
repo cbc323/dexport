@@ -10,10 +10,13 @@ namespace dexport {
 	class ExtractedObjectProcessor {
 		protected:
 			std::shared_ptr<ExtractedFile> _extractedFile;
+			bool started;
 			Context& _context;
 
 		public:
 			ExtractedObjectProcessor(std::shared_ptr<ExtractedFile> extractedFile, Context& context);
+			virtual ~ExtractedObjectProcessor();
+
 			virtual void operator()() = 0;
 	};
 
@@ -26,6 +29,13 @@ namespace dexport {
 	class ExtractedArchiveProcessor : public ExtractedObjectProcessor {
 		public:
 			ExtractedArchiveProcessor(std::shared_ptr<ExtractedFile> extractedFile, Context& context);
+			void operator()();
+	};
+
+
+	class ExtractedMetaFileProcessor : public ExtractedObjectProcessor {
+		public:
+			ExtractedMetaFileProcessor(std::shared_ptr<ExtractedFile> extractedFile, Context& context);
 			void operator()();
 	};
 }

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <mutex>
+#include <atomic>
 
 namespace dexport {
 	class WorkQueue {
@@ -19,24 +20,40 @@ namespace dexport {
 
 			size_t _gcThreshold;
 			bool _parallel = true;
+			std::atomic<uint64_t> _inProgress;
 
 		public:
-			WorkQueue(size_t gcThreshold = 1000000) : _gcThreshold(gcThreshold) {}
+			WorkQueue(size_t gcThreshold = 1) : _gcThreshold(gcThreshold), _inProgress(0) {}
 			WorkQueue& operator=(const WorkQueue) = delete;
 			WorkQueue(const WorkQueue&) = delete;
+
+
+			bool hasWork() {
+				return _inProgress.load() > 0;
+			}
+
+
+			std::atomic<uint64_t>& getInProgressCount() {
+				return _inProgress;
+			}
+
 
 			void parallel(bool para) {
 				_parallel = para;
 			}
 
+
 			template <typename Function>
-			void async(Function func) {
+			void async(Function &&func) {
 				if(!_parallel) {
 					func();
 					return;
 				}
 
+				std::cout << "== Adding workd" << std::endl;
+
 				std::unique_lock<std::recursive_mutex> lck(_futuresMutex);
+				_inProgress.fetch_add(1);
 				_futures.push_back(std::async(std::launch::async, func));
 
 				// clean up some of the futures that are complete
@@ -54,15 +71,14 @@ namespace dexport {
 			//TODO: Add a destructor that ensure all of the futures return
 
 			void join() {
-				std::for_each(_futures.begin(), _futures.end(), [](const std::future<void>& fut) {
-					if(fut.valid()) {
-						try {
-							fut.wait();
-						} catch(...) {
-							std::cout << "exception in join" << std::endl;
-						}
-					}
-				});
+				std::unique_lock<std::recursive_mutex> lck(_futuresMutex);
+				_futures.erase(
+						std::remove_if(_futures.begin(), _futures.end(), [](const std::future<void>& fut) {
+								if(!fut.valid()) { return true; }
+								return fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+							}),
+						_futures.end()
+						);
 			}
 	};
 }

@@ -3,6 +3,9 @@
 #include <thread>
 #include <future>
 #include <stdexcept>
+#include <mutex>
+#include <chrono>
+#include <condition_variable>
 
 #include "evidence.h"
 #include "work_queue.h"
@@ -12,6 +15,7 @@
 #include "archive_identifier.h"
 
 using namespace std;
+using namespace std::chrono_literals;
 using namespace dexport;
 
 std::vector<std::string> ArchiveIdentifier::_archiveMimes = std::vector<std::string>();
@@ -28,8 +32,6 @@ TSK_WALK_RET_ENUM dirwalk_callback(TSK_FS_FILE *fsFile, const char *path, void *
 	if(fsFile->meta->type == TSK_FS_META_TYPE_DIR) {
 		return TSK_WALK_CONT;
 	}
-
-	//((Context *) context)->workq().parallel(false);
 
 	try {
 		((Context *) context)->workq().async(FileExtractor(make_shared<TSKFile>(fsFile->fs_info, path, fsFile->name->name, fsFile->meta->addr), *((Context *)context)));
@@ -50,8 +52,13 @@ int main(int argc, const char **argv) {
 		return 1;
 	}
 
+	std::mutex completeEvent;
+	std::condition_variable cv;
+
 	Context ctx(argv[2]);
-	ctx.workq().parallel(false);
+	//ctx.workq().parallel(false);
+
+	cout << ">> Jobs running: " << ctx.workq().getInProgressCount().load() << endl;
 
 	// setup the mimes for the ArchiveIdentifier class
 	ArchiveIdentifier::setMimes(ctx.archiveMimes());
@@ -68,6 +75,22 @@ int main(int argc, const char **argv) {
 	});
 
 	cout << "Finished walking the evidence" << endl;
-	ctx.workq().join();
+
+	{
+		std::unique_lock<std::mutex> ul(completeEvent);
+		while(true) {
+			bool done = cv.wait_until(ul, std::chrono::system_clock::now() + 100ms, [&ctx](){
+					ctx.workq().join();
+					//cout << "Jobs still running: " << ctx.workq().getInProgressCount().load() << endl;
+					return !ctx.workq().hasWork();
+				});
+			if(done) {
+				break;
+			}
+		}
+	}
+
+	cout << "Jobs appear to be finished" << endl;
+	//ctx.workq().join();
 	cout << "All futures returned" << endl;
 }

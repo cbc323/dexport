@@ -16,9 +16,20 @@
 using namespace std;
 using namespace dexport;
 
-FileExtractor::FileExtractor(shared_ptr<File> file, Context& context) : _file(file), _context(context) { }
+
+FileExtractor::FileExtractor(shared_ptr<File> file, Context& context) : _file(file), _context(context), started(false) {}
+
+
+FileExtractor::~FileExtractor() {
+	if(started) {
+		cout << ">> extractor decrementing jobs" << endl;
+		_context.workq().getInProgressCount().fetch_sub(1);
+	}
+}
+
 
 void FileExtractor::operator()() {
+	started = true;
 	shared_ptr<ExtractedFile> ef;
 	if(_file->size() < 1024 * 1024 * 500) {
 		ef = make_shared<MemoryExtractedFile>(_file->bytes(), _file->meta());

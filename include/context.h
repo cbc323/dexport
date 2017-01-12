@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <atomic>
+#include <cstdint>
 
 #include "work_queue.h"
 #include "file_magic.h"

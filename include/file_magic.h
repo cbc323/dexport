@@ -42,7 +42,7 @@ namespace dexport {
 
 	class FileMagic {
 		private:
-			static const int _DEFAULT_FLAGS = MAGIC_COMPRESS | MAGIC_MIME_TYPE | MAGIC_MIME_ENCODING;
+			static const int _DEFAULT_FLAGS = /*MAGIC_COMPRESS |*/ MAGIC_MIME_TYPE | MAGIC_MIME_ENCODING;
 			magic_t _magic;
 
 			void setFlags(bool decompress) {
@@ -52,16 +52,26 @@ namespace dexport {
 		public:
 			FileMagic() {
 				// the flags are set on a per-call basis
-				_magic = magic_open(_DEFAULT_FLAGS);
-				magic_load(_magic, nullptr);
+				//_magic = magic_open(_DEFAULT_FLAGS);
+				//magic_load(_magic, nullptr);
 			}
 
 			FileMagicResult test(const std::vector<uint8_t> &contents) {
-				return FileMagicResult(magic_buffer(_magic, contents.data(), contents.size()));
+				magic_t m = magic_open(_DEFAULT_FLAGS);
+				magic_load(m, nullptr);
+				auto res = magic_buffer(m, contents.data(), contents.size());
+				auto magicString = std::string(res);
+				magic_close(m);
+				return FileMagicResult(magicString);
 			}
 
 			FileMagicResult test(const std::string &filename) {
-				return FileMagicResult(magic_file(_magic, filename.c_str()));
+				magic_t m = magic_open(_DEFAULT_FLAGS);
+				magic_load(m, nullptr);
+				auto res = magic_file(m, filename.c_str());
+				auto magicString = std::string(res);
+				magic_close(m);
+				return FileMagicResult(magicString);
 			}
 	};
 }

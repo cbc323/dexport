@@ -2,6 +2,8 @@
 #include <string>
 #include <algorithm>
 
+#include <iostream>
+
 namespace dexport {
 	class ArchiveIdentifier {
 		private:
