@@ -4,7 +4,7 @@ INC= -I./include
 CXX= clang++
 CXXFLAGS= -Wall -m64 -std=c++14 -ggdb $(INC)
 
-LIBS= -larchive -lz -lbz2 -lpthread -lmagic -ltsk -lmbedcrypto
+LIBS= -larchive -lz -lbz2 -lpthread -lmagic -ltsk -lmbedcrypto -lcurl
 LINKER= clang++
 LFLAGS= -Wall -ggdb $(INC) $(LIBS)
 

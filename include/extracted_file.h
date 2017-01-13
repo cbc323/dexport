@@ -5,8 +5,10 @@
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+
 #include <archive.h>
 #include <mbedtls/md5.h>
+#include <boost/interprocess/streams/bufferstream.hpp>
 
 #include "file_meta.h"
 #include "file_magic.h"
@@ -62,6 +64,15 @@ namespace dexport {
 			virtual std::map<std::string, std::vector<uint8_t>> digest() {
 				Digester d;
 				return d.digest(_bytes);
+			}
+
+
+			const std::vector<uint8_t>& bytes() const {
+				return _bytes;
+			}
+
+			size_t size() const {
+				return _bytes.size();
 			}
 	};
 
@@ -122,6 +133,10 @@ namespace dexport {
 				}
 
 				return d.finish();
+			}
+
+			std::string name() {
+				return _tf.name();
 			}
 	};
 }

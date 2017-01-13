@@ -7,6 +7,7 @@
 
 #include "processors.h"
 #include "archive_identifier.h"
+#include "http_upload.h"
 
 using namespace std;
 using namespace dexport;
@@ -28,6 +29,8 @@ ExtractedFileProcessor::ExtractedFileProcessor(shared_ptr<ExtractedFile> extract
 void ExtractedFileProcessor::operator()() {
 	started = true;
 	// run this through all of the export plugins
+	HTTPUpload up("http://127.0.0.1");
+	
 }
 
 

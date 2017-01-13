@@ -6,6 +6,7 @@
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
+#include <curl/curl.h>
 
 #include "evidence.h"
 #include "work_queue.h"
@@ -55,6 +56,8 @@ int main(int argc, const char **argv) {
 	std::mutex completeEvent;
 	std::condition_variable cv;
 
+	curl_global_init(CURL_GLOBAL_NOTHING);
+
 	Context ctx(argv[2]);
 	//ctx.workq().parallel(false);
 
@@ -92,4 +95,6 @@ int main(int argc, const char **argv) {
 	cout << "Jobs appear to be finished" << endl;
 	//ctx.workq().join();
 	cout << "All futures returned" << endl;
+
+	curl_global_cleanup();
 }
