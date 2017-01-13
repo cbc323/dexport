@@ -3,25 +3,23 @@
 
 #include <memory>
 #include <string>
-#include <curl/curl.h>
+#include <boost/asio.hpp>
 
 #include "extracted_file.h"
 
 namespace dexport {
 	class HTTPUpload {
 		private:
-			CURL *_curl;
 			std::vector<std::string> _headers;
-			std::string _url;
-
-			void upload();
+			std::string _hostname;
+			std::string _port;
+			std::string _path;
 
 		public:
-			HTTPUpload(const std::string& url);
-			~HTTPUpload();
+			HTTPUpload(const std::string& host, const std::string& port, const std::string path = "/");
+			void upload(std::shared_ptr<ExtractedFile> ef);
 
-			void file(std::shared_ptr<MemoryExtractedFile> mef);
-			void file(std::shared_ptr<TempExtractedFile> tef);
+			virtual ~HTTPUpload();
 	};
 }
 #endif

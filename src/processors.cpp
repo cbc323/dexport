@@ -28,9 +28,10 @@ ExtractedFileProcessor::ExtractedFileProcessor(shared_ptr<ExtractedFile> extract
 
 void ExtractedFileProcessor::operator()() {
 	started = true;
+
 	// run this through all of the export plugins
-	HTTPUpload up("http://127.0.0.1");
-	
+	HTTPUpload up("127.0.0.1", "80");
+	up.upload(_extractedFile);
 }
 
 
