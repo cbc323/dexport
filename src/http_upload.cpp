@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <cstdio>
+#include <algorithm>
 
 #include "http_upload.h"
 
@@ -18,10 +19,16 @@ void HTTPUpload::upload(shared_ptr<ExtractedFile> ef) {
 	st << "POST " << _path << " HTTP/1.1\r\n";
 	st << "Host: " << _hostname << "\r\n";
 	st << "Content-Type: application/octet-stream\r\n";
+	st << "Content-Length: " << ef->size() << "\r\n";
+
+	auto meta = ef->getMeta().toMap();
+	for(auto curMeta : meta) {
+		st << "X-DEXPORT-" << curMeta.first << ": " << curMeta.second << "\r\n";
+	}
+
 
 	st << "\r\n"; // end of headers, start content
-
-	ef->write(st);
+	//ef->write(st);
 }
 
 

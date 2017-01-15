@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdint>
+#include <map>
 #include <tsk/libtsk.h>
 
 namespace dexport {
@@ -19,6 +20,9 @@ namespace dexport {
 
 			time_t atime;
 			uint32_t atimeNano;
+
+			time_t ctime;
+			uint32_t ctimeNano;
 
 			time_t crtime;
 			uint32_t crtimeNano;
@@ -53,6 +57,9 @@ namespace dexport {
 					atime = tskMeta->atime;
 					atimeNano = tskMeta->atime_nano;
 
+					ctime = tskMeta->ctime;
+					ctimeNano = tskMeta->ctime_nano;
+
 					crtime = tskMeta->crtime;
 					crtimeNano = tskMeta->crtime_nano;
 
@@ -72,10 +79,47 @@ namespace dexport {
 					extDeleteNano = tskMeta->time2.ext2.dtime_nano;
 			}
 
+
 			void makeChild(const std::string& childPath) {
 				archiveDepth++;
 				parentPath = parentPath + "/" + fileName;
 				fileName = childPath;
+			}
+
+
+			std::map<std::string, std::string> toMap() const {
+				std::map<std::string, std::string> out;
+				out["INUM"] = std::to_string(inum);
+				out["SIZE"] = std::to_string(fileSize);
+
+				out["FILE_GID"] = std::to_string(gid);
+				out["FILE_UID"] = std::to_string(uid);
+
+				out["ATIME"] = std::to_string(atime);
+				out["ATIME_NANO"] = std::to_string(atimeNano);
+
+				out["CTIME"] = std::to_string(ctime);
+				out["CTIME_NANO"] = std::to_string(ctimeNano);
+
+				out["CRTIME"] = std::to_string(crtime);
+				out["CRTIME_NANO"] = std::to_string(crtimeNano);
+
+				out["MTIME"] = std::to_string(mtime);
+				out["MTIME_NANO"] = std::to_string(mtimeNano);
+
+				out["MFT_ATIME"] = std::to_string(mftAccess);
+				out["MFT_ATIME_NANO"] = std::to_string(mftAccessNano);
+
+				out["MFT_CRTIME"] = std::to_string(mftCreate);
+				out["MFT_CRTIME_NANO"] = std::to_string(mftCreateNano);
+
+				out["MFT_MTIME"] = std::to_string(mftModify);
+				out["MFT_MTIME_NANO"] = std::to_string(mftModifyNano);
+
+				out["DTIME"] = std::to_string(extDelete);
+				out["DTIME_NANO"] = std::to_string(extDeleteNano);
+
+				return out;
 			}
 	};
 }

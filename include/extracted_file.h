@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+#include <sys/stat.h>
 
 #include <archive.h>
 #include <mbedtls/md5.h>
@@ -29,6 +30,7 @@ namespace dexport {
 			virtual std::vector<uint8_t> md5sum() = 0;
 			virtual std::map<std::string, std::vector<uint8_t>> digest() = 0;
 			virtual void write(std::ostream& out) = 0;
+			virtual size_t size() const = 0;
 
 			const FileMeta& getMeta() const {
 				return _meta;
@@ -62,21 +64,19 @@ namespace dexport {
 				return output;
 			}
 
+
 			virtual std::map<std::string, std::vector<uint8_t>> digest() {
 				Digester d;
 				return d.digest(_bytes);
 			}
+
 
 			virtual void write(std::ostream& out) {
 				out.write((const char *) _bytes.data(), _bytes.size());
 			}
 
 
-			const std::vector<uint8_t>& bytes() const {
-				return _bytes;
-			}
-
-			size_t size() const {
+			virtual size_t size() const {
 				return _bytes.size();
 			}
 	};
@@ -145,6 +145,17 @@ namespace dexport {
 			virtual void write(std::ostream& out) {
 				std::ifstream in(_tf.name());
 				out << in.rdbuf();
+			}
+
+
+			virtual size_t size() const {
+				struct stat fstat;
+				if(stat(_tf.name().c_str(), &fstat) == -1) {
+					throw std::runtime_error("Unable to stat temp file!");
+				}
+
+				auto i = fstat.st_size;
+				return i;
 			}
 
 

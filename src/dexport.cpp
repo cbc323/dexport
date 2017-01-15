@@ -93,7 +93,6 @@ int main(int argc, const char **argv) {
 	}
 
 	cout << "Jobs appear to be finished" << endl;
-	//ctx.workq().join();
 	cout << "All futures returned" << endl;
 
 	curl_global_cleanup();
