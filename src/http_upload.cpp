@@ -10,27 +10,45 @@ using namespace std;
 using boost::asio::ip::tcp;
 
 
-HTTPUpload::HTTPUpload(const std::string& host, const std::string& port, const std::string path)
-	: _hostname(host), _port(port), _path(path) { }
-
-
-void HTTPUpload::upload(shared_ptr<ExtractedFile> ef) {
-	tcp::iostream st(_hostname, _port);
-	st << "POST " << _path << " HTTP/1.1\r\n";
-	st << "Host: " << _hostname << "\r\n";
-	st << "Content-Type: application/octet-stream\r\n";
-	st << "Content-Length: " << ef->size() << "\r\n";
-
-	auto meta = ef->getMeta().toMap();
-	for(auto curMeta : meta) {
-		st << "X-DEXPORT-" << curMeta.first << ": " << curMeta.second << "\r\n";
-	}
-
-
-	st << "\r\n"; // end of headers, start content
-	//ef->write(st);
+HTTPUpload::HTTPUpload(const std::string& host, const std::string& port, const std::string& path)
+	: _hostname(host), _port(port), _path(path), _connection(_hostname, _port) {
+	_headers["Host"] = host;
 }
 
 
-HTTPUpload::~HTTPUpload() { }
+void HTTPUpload::_sendHeaders() {
+	_connection << "POST " << _path << " HTTP/1.1\r\n";
+
+	for(auto& header : _headers) {
+		_connection << header.first << ": " << header.second << "\r\n";
+	}
+
+	_connection << "\r\n";
+	_headers.clear();
+}
+
+
+void HTTPUpload::_setMetaHeaders(const FileMeta& fm) {
+	auto meta = fm.toMap();
+	for(auto curMeta : meta) {
+		_headers["X-DEXPORT-" + curMeta.first] = curMeta.second;
+	}
+}
+
+
+void HTTPUpload::upload(const FileMeta& fm) {
+	_setMetaHeaders(fm);
+	setHeader("Content-Length", 0);
+
+	_sendHeaders();
+}
+
+
+void HTTPUpload::upload(shared_ptr<ExtractedFile> ef) {
+	_setMetaHeaders(ef->getMeta());
+	setHeader("Content-Length", ef->getMeta().fileSize);
+	_sendHeaders();
+
+	//ef->write(_connection);
+}
 

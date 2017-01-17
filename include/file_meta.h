@@ -119,6 +119,10 @@ namespace dexport {
 				out["DTIME"] = std::to_string(extDelete);
 				out["DTIME_NANO"] = std::to_string(extDeleteNano);
 
+				out["FILENAME"] = fileName;
+				out["PARENT_PATH"] = parentPath;
+				out["PATH"] = parentPath + "/" + fileName;
+
 				return out;
 			}
 	};

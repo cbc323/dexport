@@ -29,6 +29,7 @@
 *.app
 
 #Ignore the bin directory to which compiled files are written
-bin/
+bin/*
+obj/*
 .ycm*
 *.swp
