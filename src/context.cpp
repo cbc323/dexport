@@ -5,7 +5,7 @@
 using namespace std;
 using namespace dexport;
 
-Context::Context(const std::string& mimesPath) {
+Context::Context(const std::string& mimesPath, size_t numThreads) : tpool(numThreads) {
 	ifstream fs(mimesPath);
 	std::string line;
 	while(getline(fs, line)) {
@@ -13,9 +13,10 @@ Context::Context(const std::string& mimesPath) {
 	}
 }
 
-WorkQueue& Context::workq() {
-	return _workq;
+ThreadPool& Context::getThreadPool() {
+	return tpool;
 }
+
 
 const std::vector<std::string>& Context::archiveMimes() {
 	return _archiveMimes;

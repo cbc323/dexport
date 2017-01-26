@@ -35,7 +35,11 @@ TSK_WALK_RET_ENUM dirwalk_callback(TSK_FS_FILE *fsFile, const char *path, void *
 	}
 
 	try {
-		((Context *) context)->workq().async(FileExtractor(make_shared<TSKFile>(fsFile->fs_info, path, fsFile->name->name, fsFile->meta->addr), *((Context *)context)));
+		((Context *) context)->getThreadPool().putWork(
+			FileExtractor(
+				make_shared<TSKFile>(fsFile->fs_info, path, fsFile->name->name, fsFile->meta->addr),
+				*((Context *)context)
+			));
 	} catch(const runtime_error& re) {
 		cout << "Caught exception while attempting to add a file to the workq" << endl;
 		cout << re.what() << endl;
@@ -58,7 +62,7 @@ int main(int argc, const char **argv) {
 
 	curl_global_init(CURL_GLOBAL_NOTHING);
 
-	Context ctx(argv[2]);
+	Context ctx(argv[2], 5);
 	//ctx.workq().parallel(false);
 
 	// setup the mimes for the ArchiveIdentifier class

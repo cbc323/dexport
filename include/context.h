@@ -6,19 +6,19 @@
 #include <atomic>
 #include <cstdint>
 
-#include "work_queue.h"
 #include "file_magic.h"
+#include "thread_pool.h"
 
 namespace dexport {
 	class Context {
 		private:
-			WorkQueue _workq;
 			std::vector<std::string> _archiveMimes;
+			ThreadPool tpool;
 
 		public:
-			Context(const std::string& mimesPath);
-			WorkQueue& workq();
+			Context(const std::string& mimesPath, size_t numThreads);
 			const std::vector<std::string>& archiveMimes();
+			ThreadPool& getThreadPool();
 	};
 }
 
